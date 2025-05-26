@@ -1,0 +1,719 @@
+---
+// ChatInterface.astroコンポーネントのprops定義
+export interface Props {
+  initialMessages?: any[];
+  subject: string;
+  topic: string;
+}
+
+const { initialMessages = [], subject, topic } = Astro.props;
+---
+
+<div class="chat-container">
+  <div class="chat-header">
+    <h2 class="chat-header__title">デジタルお兄ちゃんに質問する</h2>
+    <div class="chat-header__actions">
+      <button class="btn-icon" id="clear-chat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
+      <button class="btn-icon" id="toggle-settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <div class="chat-messages" id="chat-messages">
+    {initialMessages.map((message) => {
+      // サーバーサイドでの安全なHTMLエスケープ（documentを使わない方法）
+      const escapeHTML = (str) => {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      };
+      
+      // エスケープしたコンテンツに対してマークダウン処理
+      let safeContent = escapeHTML(message.content);
+      
+      // 段落を先に処理
+      safeContent = safeContent.replace(/\n\n+/g, '</p><p>');
+      
+      // リスト処理
+      const listItemRegex = /^(\d+)\.\s(.*)$|^-\s(.*)$/gm;
+      let inOrderedList = false;
+      let inUnorderedList = false;
+      let formattedList = '';
+      const lines = safeContent.split('\n');
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const orderedMatch = /^(\d+)\.\s(.*)$/.exec(line);
+        const unorderedMatch = /^-\s(.*)$/.exec(line);
+        
+        if (orderedMatch) {
+          if (!inOrderedList) {
+            // 新しい番号付きリスト開始
+            if (inUnorderedList) {
+              formattedList += '</ul>';
+              inUnorderedList = false;
+            }
+            formattedList += `<ol start="${orderedMatch[1]}">`;
+            inOrderedList = true;
+          }
+          formattedList += `<li>${orderedMatch[2]}</li>`;
+        } else if (unorderedMatch) {
+          if (!inUnorderedList) {
+            // 新しい箇条書きリスト開始
+            if (inOrderedList) {
+              formattedList += '</ol>';
+              inOrderedList = false;
+            }
+            formattedList += '<ul>';
+            inUnorderedList = true;
+          }
+          formattedList += `<li>${unorderedMatch[1]}</li>`;
+        } else {
+          // リストではない行
+          if (inOrderedList) {
+            formattedList += '</ol>';
+            inOrderedList = false;
+          }
+          if (inUnorderedList) {
+            formattedList += '</ul>';
+            inUnorderedList = false;
+          }
+          
+          // 改行を<br>に置換
+          if (i > 0 && !lines[i-1].match(listItemRegex)) {
+            formattedList += line ? `<br>${line}` : '';
+          } else {
+            formattedList += line;
+          }
+        }
+        
+        // 最終行の処理
+        if (i === lines.length - 1) {
+          if (inOrderedList) formattedList += '</ol>';
+          if (inUnorderedList) formattedList += '</ul>';
+        }
+      }
+      
+      // 基本的な書式
+      const styledContent = formattedList
+        // マークダウン書式
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 太字
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')             // 斜体
+        .replace(/`(.*?)`/g, '<code>$1</code>');          // コード
+      
+      return (
+        <div class={`message message-${message.sender}`}>
+          {message.sender === 'brother' && (
+            <div class="avatar">
+              <span>兄</span>
+            </div>
+          )}
+          <div class="message-content">
+            <Fragment set:html={`<p>${styledContent}</p>`} />
+          </div>
+        </div>
+      );
+    })}
+  </div>
+  
+  <div class="chat-status" id="chat-status">
+    <div class="chat-status__indicator">
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div class="chat-status__text">お兄ちゃんが考え中...</div>
+  </div>
+  
+  <div class="chat-input">
+    <form id="chat-form">
+      <textarea 
+        id="user-input" 
+        placeholder="質問を入力してください..." 
+        rows="1"
+      ></textarea>
+      <button type="submit" class="send-button" id="send-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script define:vars={{ subject, topic }}>
+  // DOM要素の取得
+  const chatForm = document.getElementById('chat-form');
+  const userInput = document.getElementById('user-input');
+  const chatMessages = document.getElementById('chat-messages');
+  const sendButton = document.getElementById('send-button');
+  const chatStatus = document.getElementById('chat-status');
+  const clearChatButton = document.getElementById('clear-chat');
+  
+  // チャット履歴
+  let messageHistory = [];
+  
+  // Auto-resize textarea
+  userInput.addEventListener('input', () => {
+    userInput.style.height = 'auto';
+    userInput.style.height = Math.min(userInput.scrollHeight, 150) + 'px';
+  });
+  
+  // チャット履歴をクリア
+  clearChatButton.addEventListener('click', () => {
+    if (confirm('チャット履歴をクリアしますか？')) {
+      chatMessages.innerHTML = '';
+      messageHistory = [];
+      localStorage.removeItem(`chat_history_${subject}_${topic}`);
+    }
+  });
+  
+  // ローカルストレージからチャット履歴を取得
+  function loadChatHistory() {
+    const storedHistory = localStorage.getItem(`chat_history_${subject}_${topic}`);
+    if (storedHistory) {
+      try {
+        const parsedHistory = JSON.parse(storedHistory);
+        messageHistory = parsedHistory;
+        
+        // メッセージをUIに表示
+        parsedHistory.forEach(msg => {
+          if (msg.role === 'user') {
+            addMessage(msg.content, 'user');
+          } else if (msg.role === 'assistant') {
+            addMessage(msg.content, 'brother');
+          }
+        });
+        
+        // 最下部にスクロール
+        scrollToBottom();
+      } catch (e) {
+        console.error('Failed to load chat history:', e);
+      }
+    }
+  }
+  
+  // チャット履歴をローカルストレージに保存
+  function saveChatHistory() {
+    localStorage.setItem(`chat_history_${subject}_${topic}`, JSON.stringify(messageHistory));
+  }
+  
+  // ページ読み込み時にチャット履歴を表示
+  loadChatHistory();
+  
+  // Submit form
+  chatForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = userInput.value.trim();
+    if (!message) return;
+    
+    // UIを更新
+    addMessage(message, 'user');
+    userInput.value = '';
+    userInput.style.height = 'auto';
+    scrollToBottom();
+    
+    // 入力欄を無効化
+    userInput.disabled = true;
+    sendButton.disabled = true;
+    
+    // ローディング表示
+    chatStatus.classList.add('active');
+    
+    // メッセージ履歴に追加
+    messageHistory.push({ role: 'user', content: message });
+    
+    try {
+      // APIリクエスト
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: messageHistory,
+          subject,
+          topic
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+      
+      const data = await response.json();
+      
+      // レスポンスを表示
+      if (data.message && data.message.content) {
+        addMessage(data.message.content, 'brother');
+        
+        // メッセージ履歴に追加
+        messageHistory.push({ 
+          role: 'assistant', 
+          content: data.message.content 
+        });
+        
+        // 履歴を保存
+        saveChatHistory();
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      addMessage('すみません、エラーが発生しました。もう一度お試しください。', 'brother');
+    } finally {
+      // ローディング非表示
+      chatStatus.classList.remove('active');
+      
+      // 入力欄を有効化
+      userInput.disabled = false;
+      sendButton.disabled = false;
+      userInput.focus();
+      
+      // 最下部にスクロール
+      scrollToBottom();
+    }
+  });
+  
+  function addMessage(content, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message message-${sender}`;
+    
+    let messageHTML = '';
+    
+    if (sender === 'brother') {
+      messageHTML += `
+        <div class="avatar">
+          <span>兄</span>
+        </div>
+      `;
+    }
+    
+    // HTMLエスケープ関数
+    const escapeHTML = (str) => {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+    
+    // エスケープしてからマークダウン処理
+    let safeContent = escapeHTML(content);
+    
+    // 段落を先に処理
+    safeContent = safeContent.replace(/\n\n+/g, '</p><p>');
+    
+    // リスト処理
+    const listItemRegex = /^(\d+)\.\s(.*)$|^-\s(.*)$/gm;
+    let inOrderedList = false;
+    let inUnorderedList = false;
+    let formattedList = '';
+    const lines = safeContent.split('\n');
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const orderedMatch = /^(\d+)\.\s(.*)$/.exec(line);
+      const unorderedMatch = /^-\s(.*)$/.exec(line);
+      
+      if (orderedMatch) {
+        if (!inOrderedList) {
+          // 新しい番号付きリスト開始
+          if (inUnorderedList) {
+            formattedList += '</ul>';
+            inUnorderedList = false;
+          }
+          formattedList += `<ol start="${orderedMatch[1]}">`;
+          inOrderedList = true;
+        }
+        formattedList += `<li>${orderedMatch[2]}</li>`;
+      } else if (unorderedMatch) {
+        if (!inUnorderedList) {
+          // 新しい箇条書きリスト開始
+          if (inOrderedList) {
+            formattedList += '</ol>';
+            inOrderedList = false;
+          }
+          formattedList += '<ul>';
+          inUnorderedList = true;
+        }
+        formattedList += `<li>${unorderedMatch[1]}</li>`;
+      } else {
+        // リストではない行
+        if (inOrderedList) {
+          formattedList += '</ol>';
+          inOrderedList = false;
+        }
+        if (inUnorderedList) {
+          formattedList += '</ul>';
+          inUnorderedList = false;
+        }
+        
+        // 改行を<br>に置換
+        if (i > 0 && !lines[i-1].match(listItemRegex)) {
+          formattedList += line ? `<br>${line}` : '';
+        } else {
+          formattedList += line;
+        }
+      }
+      
+      // 最終行の処理
+      if (i === lines.length - 1) {
+        if (inOrderedList) formattedList += '</ol>';
+        if (inUnorderedList) formattedList += '</ul>';
+      }
+    }
+    
+    // 基本的な書式
+    const styledContent = formattedList
+      // マークダウン書式
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 太字
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')             // 斜体
+      .replace(/`(.*?)`/g, '<code>$1</code>');          // コード
+    
+    messageHTML += `
+      <div class="message-content">
+        <p>${styledContent}</p>
+      </div>
+    `;
+    
+    messageDiv.innerHTML = messageHTML;
+    chatMessages?.appendChild(messageDiv);
+    
+    // 最下部にスクロール
+    scrollToBottom();
+  }
+  
+  function scrollToBottom() {
+    chatMessages?.scrollTo({
+      top: chatMessages.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+</script>
+
+<style>
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+  
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+  }
+  
+  .chat-header__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .chat-header__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .btn-icon:hover {
+    background-color: var(--bg-primary);
+    color: var(--accent-primary);
+  }
+  
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: var(--bg-primary);
+  }
+  
+  .message {
+    display: flex;
+    max-width: 80%;
+  }
+  
+  .message-user {
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+  
+  .message-brother {
+    margin-right: auto;
+  }
+  
+  .message-system {
+    align-self: center;
+    max-width: 90%;
+    opacity: 0.8;
+  }
+  
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .message-content {
+    background-color: var(--bg-secondary);
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    line-height: 1.5;
+  }
+  
+  .message-content p {
+    margin: 0;
+  }
+  
+  .message-content p + p {
+    margin-top: 0.75rem;
+  }
+  
+  .message-content strong {
+    font-weight: 600;
+    color: var(--accent-primary);
+  }
+  
+  .message-content em {
+    font-style: italic;
+    color: var(--accent-secondary);
+  }
+  
+  .message-content code {
+    font-family: monospace;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+  
+  .message-content ul, 
+  .message-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .message-content li {
+    margin-bottom: 0.25rem;
+  }
+  
+  .message-content li:last-child {
+    margin-bottom: 0;
+  }
+  
+  .message-content ol {
+    list-style-type: decimal;
+  }
+  
+  .message-content ul {
+    list-style-type: disc;
+  }
+  
+  .message-user .message-content {
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+  }
+  
+  .message-user .message-content strong,
+  .message-user .message-content em,
+  .message-user .message-content code {
+    color: white;
+  }
+  
+  .message-user .message-content code {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .message-system .message-content {
+    background-color: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  .chat-input {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+  }
+  
+  #chat-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  #user-input {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    max-height: 150px;
+    transition: border-color 0.2s ease;
+  }
+  
+  #user-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+  }
+  
+  #user-input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .send-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  
+  .send-button:hover:not(:disabled) {
+    transform: scale(1.05);
+  }
+  
+  .send-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .send-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .chat-status {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .chat-status.active {
+    display: flex;
+  }
+  
+  .chat-status__indicator {
+    display: flex;
+    align-items: center;
+  }
+  
+  .chat-status__text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .typing-indicator span {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    opacity: 0.7;
+    animation: typing 1.5s infinite ease-in-out;
+  }
+  
+  .typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes typing {
+    0%, 60%, 100% {
+      transform: translateY(0);
+      opacity: 0.7;
+    }
+    30% {
+      transform: translateY(-0.35rem);
+      opacity: 1;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .chat-header,
+    .chat-messages,
+    .chat-input {
+      padding: 1rem;
+    }
+    
+    .message {
+      max-width: 90%;
+    }
+  }
+</style> 

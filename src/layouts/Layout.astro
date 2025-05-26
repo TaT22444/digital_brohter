@@ -1,22 +1,79 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja" class="dark">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@1,100&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/destyle.css@1.0.15/destyle.css" rel="stylesheet"/>
+		<title>デジタルお兄ちゃん</title>
 	</head>
 	<body>
-		<slot />
+		<div class="app">
+			<slot />
+		</div>
 	</body>
 </html>
 
 <style>
+	:root {
+		--bg-primary: #f9fafb;
+		--bg-secondary: #ffffff;
+		--text-primary: #111827;
+		--text-secondary: #4b5563;
+		--accent-primary: #3245ff;
+		--accent-secondary: #bc52ee;
+		--accent-primary-rgb: 79, 70, 229;
+		--accent-secondary-rgb: 139, 92, 246;
+		--border-color: #e5e7eb;
+	}
+
+	html.dark {
+		--bg-primary: #111827;
+		--bg-secondary: #1f2937;
+		--text-primary: #f9fafb;
+		--text-secondary: #d1d5db;
+		--accent-primary: #4f46e5;
+		--accent-secondary: #8b5cf6;
+		--accent-primary-rgb: 79, 70, 229;
+		--accent-secondary-rgb: 139, 92, 246;
+		--border-color: #374151;
+	}
+
 	html,
 	body {
 		margin: 0;
 		width: 100%;
 		height: 100%;
+		background-color: var(--bg-primary);
+		color: var(--text-primary);
+		font-family: 'Noto Sans JP', sans-serif;
+	}
+
+	.app {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+
+	@media (min-width: 641px) {
+		.app {
+			padding-left: 240px;
+		}
+	}
+
+	@media (min-width: 641px) and (max-width: 768px) {
+		.app {
+			padding-left: 64px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.app {
+			padding-bottom: 60px;
+		}
 	}
 </style>

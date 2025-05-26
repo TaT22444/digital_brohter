@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import SummaryCard from '../components/SummaryCard.astro';
+
+// サンプルデータ（実際にはデータベースから取得する）
+const summaries = [
+  {
+    id: 1,
+    title: '二次方程式の解き方',
+    date: '2025年5月26日',
+    subject: '数学',
+    summary: '二次方程式を解くために因数分解の方法を学びました。x²+5x+6=0 を (x+2)(x+3)=0 と因数分解し、x=-2, x=-3 という解を導き出しました。因数分解のコツは、積が6で和が5になる数字の組み合わせを考えることです。',
+  },
+  {
+    id: 2,
+    title: '英語のエッセイ作成',
+    date: '2025年5月25日',
+    subject: '英語',
+    summary: '「My Future Dream」というテーマで英語エッセイを書きました。まず構成を考え、導入、本論、結論の3部構成にしました。本論では、将来の夢とそれを実現するために今していることを具体的に書きました。',
+  },
+  {
+    id: 3,
+    title: '太陽系の惑星について',
+    date: '2025年5月24日',
+    subject: '理科',
+    summary: '太陽系の8つの惑星について調べました。それぞれの惑星の特徴、大きさ、太陽からの距離などを比較し、なぜ地球だけに生命が存在するのかを考察しました。',
+  }
+];
+---
+
+<Layout>
+	<Sidebar />
+	<main class="main">
+		<div class="container">
+			<header class="page-header">
+				<h1 class="page-title">学習サマリー</h1>
+				<p class="page-description">これまでに作成したサマリーの一覧です。先生に提出するレポートとして活用できます。</p>
+			</header>
+			
+			<div class="summaries-grid">
+				{summaries.map((summary) => (
+					<SummaryCard
+						title={summary.title}
+						date={summary.date}
+						subject={summary.subject}
+						summary={summary.summary}
+					/>
+				))}
+			</div>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.main {
+		flex: 1;
+		height: 100vh;
+		overflow-y: auto;
+	}
+	
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 1.5rem;
+	}
+	
+	.page-header {
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--border-color);
+	}
+	
+	.page-title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+		color: var(--text-primary);
+	}
+	
+	.page-description {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+	}
+	
+	.summaries-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+	
+	@media (max-width: 640px) {
+		.container {
+			padding: 1rem;
+		}
+		
+		.main {
+			height: calc(100vh - 60px);
+		}
+		
+		.summaries-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style> 

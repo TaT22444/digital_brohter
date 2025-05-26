@@ -1,0 +1,709 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+// サンプル分析データ
+const analyticsData = {
+  overall: {
+    totalAssignments: 12,
+    completedAssignments: 3,
+    averageTime: 45, // 分単位
+    questionsAsked: 28,
+    thoughtProcessScore: 75, // 100点満点
+  },
+  subjects: [
+    {
+      id: 'math',
+      name: '数学',
+      color: 'blue',
+      score: 80,
+      progress: 40,
+      strengths: ['論理的思考', '問題分析'],
+      weaknesses: ['公式の応用'],
+      assignments: [
+        {
+          id: 1,
+          title: '二次方程式の解法',
+          progress: 75,
+          questionsAsked: 12,
+          timeSpent: 90, // 分単位
+          thoughtPatterns: [
+            { name: '分析的思考', value: 85 },
+            { name: '試行錯誤', value: 60 },
+            { name: '直感的理解', value: 40 },
+          ]
+        },
+        {
+          id: 2,
+          title: '三角関数の基礎',
+          progress: 30,
+          questionsAsked: 5,
+          timeSpent: 45,
+          thoughtPatterns: [
+            { name: '分析的思考', value: 70 },
+            { name: '試行錯誤', value: 50 },
+            { name: '直感的理解', value: 30 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'science',
+      name: '理科',
+      color: 'green',
+      score: 65,
+      progress: 33,
+      strengths: ['実験考察', '観察力'],
+      weaknesses: ['理論の応用'],
+      assignments: [
+        {
+          id: 1,
+          title: '化学反応の基本',
+          progress: 60,
+          questionsAsked: 8,
+          timeSpent: 60,
+          thoughtPatterns: [
+            { name: '分析的思考', value: 75 },
+            { name: '試行錯誤', value: 80 },
+            { name: '直感的理解', value: 45 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'english',
+      name: '英語',
+      color: 'yellow',
+      score: 70,
+      progress: 0,
+      strengths: ['語彙力', 'リーディング'],
+      weaknesses: ['文法応用'],
+      assignments: []
+    },
+    {
+      id: 'social',
+      name: '社会',
+      color: 'red',
+      score: 75,
+      progress: 25,
+      strengths: ['歴史的考察', '資料分析'],
+      weaknesses: ['現代社会への応用'],
+      assignments: [
+        {
+          id: 1,
+          title: '日本の歴史年表',
+          progress: 50,
+          questionsAsked: 3,
+          timeSpent: 40,
+          thoughtPatterns: [
+            { name: '分析的思考', value: 65 },
+            { name: '試行錯誤', value: 40 },
+            { name: '直感的理解', value: 70 },
+          ]
+        }
+      ]
+    }
+  ],
+  recentActivity: {
+    daily: [
+      { date: '5/20', questionsAsked: 2, timeSpent: 30 },
+      { date: '5/21', questionsAsked: 5, timeSpent: 45 },
+      { date: '5/22', questionsAsked: 0, timeSpent: 0 },
+      { date: '5/23', questionsAsked: 3, timeSpent: 20 },
+      { date: '5/24', questionsAsked: 8, timeSpent: 60 },
+      { date: '5/25', questionsAsked: 7, timeSpent: 50 },
+      { date: '5/26', questionsAsked: 3, timeSpent: 40 },
+    ]
+  }
+};
+
+// 最も使われている思考パターン
+const topThoughtPatterns = [
+  { name: '分析的思考', value: 80 },
+  { name: '試行錯誤', value: 65 },
+  { name: '直感的理解', value: 50 },
+  { name: '創造的解決', value: 45 },
+  { name: '体系的アプローチ', value: 40 },
+];
+---
+
+<Layout>
+  <Sidebar />
+  <main class="main">
+    <div class="container">
+      <header class="page-header">
+        <h1 class="page-title">学習分析</h1>
+        <p class="page-description">あなたの学習パターンと思考傾向の分析データです。</p>
+      </header>
+
+      <section class="stats-overview">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__content">
+              <h3 class="stat-card__title">総合思考力スコア</h3>
+              <div class="stat-card__value">{analyticsData.overall.thoughtProcessScore}</div>
+              <div class="stat-card__metric">/ 100</div>
+            </div>
+            <div class="stat-card__chart">
+              <div class="circular-progress" style={`--progress: ${analyticsData.overall.thoughtProcessScore}%`}>
+                <div class="circular-progress__inner"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__content">
+              <h3 class="stat-card__title">課題完了率</h3>
+              <div class="stat-card__value">{Math.round(analyticsData.overall.completedAssignments / analyticsData.overall.totalAssignments * 100)}</div>
+              <div class="stat-card__metric">%</div>
+            </div>
+            <div class="stat-card__chart">
+              <div class="circular-progress" style={`--progress: ${Math.round(analyticsData.overall.completedAssignments / analyticsData.overall.totalAssignments * 100)}%`}>
+                <div class="circular-progress__inner"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__content">
+              <h3 class="stat-card__title">平均学習時間</h3>
+              <div class="stat-card__value">{analyticsData.overall.averageTime}</div>
+              <div class="stat-card__metric">分/回</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__content">
+              <h3 class="stat-card__title">質問回数</h3>
+              <div class="stat-card__value">{analyticsData.overall.questionsAsked}</div>
+              <div class="stat-card__metric">回</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section class="thought-patterns">
+        <div class="section-header">
+          <h2 class="section-title">あなたの思考パターン</h2>
+        </div>
+        <div class="thought-patterns__chart">
+          {topThoughtPatterns.map(pattern => (
+            <div class="thought-pattern">
+              <div class="thought-pattern__label">{pattern.name}</div>
+              <div class="thought-pattern__bar-container">
+                <div class="thought-pattern__bar" style={`width: ${pattern.value}%`}></div>
+              </div>
+              <div class="thought-pattern__value">{pattern.value}%</div>
+            </div>
+          ))}
+        </div>
+      </section>
+      
+      <section class="activity-trends">
+        <div class="section-header">
+          <h2 class="section-title">最近の学習アクティビティ</h2>
+        </div>
+        <div class="activity-chart">
+          <div class="activity-chart__bars">
+            {analyticsData.recentActivity.daily.map(day => (
+              <div class="activity-chart__bar-group">
+                <div class="activity-chart__date">{day.date}</div>
+                <div class="activity-chart__bar-container">
+                  <div class="activity-chart__bar activity-chart__bar--time" style={`height: ${day.timeSpent * 100 / 60}%`} title={`学習時間: ${day.timeSpent}分`}></div>
+                  <div class="activity-chart__bar activity-chart__bar--questions" style={`height: ${day.questionsAsked * 100 / 10}%`} title={`質問回数: ${day.questionsAsked}回`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="activity-chart__legend">
+            <div class="activity-chart__legend-item">
+              <div class="activity-chart__legend-color activity-chart__legend-color--time"></div>
+              <div class="activity-chart__legend-label">学習時間（分）</div>
+            </div>
+            <div class="activity-chart__legend-item">
+              <div class="activity-chart__legend-color activity-chart__legend-color--questions"></div>
+              <div class="activity-chart__legend-label">質問回数</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section class="subject-analysis">
+        <div class="section-header">
+          <h2 class="section-title">授業別分析</h2>
+        </div>
+        <div class="subject-grid">
+          {analyticsData.subjects.map(subject => (
+            <div class="subject-card" style={`--subject-color: var(--color-${subject.color})`}>
+              <div class="subject-card__header">
+                <h3 class="subject-card__title">{subject.name}</h3>
+                <div class="subject-card__score">{subject.score}<span>/100</span></div>
+              </div>
+              <div class="subject-card__progress">
+                <div class="progress-bar">
+                  <div class="progress-bar__fill" style={`width: ${subject.progress}%`}></div>
+                </div>
+                <div class="progress-bar__label">{subject.progress}% 完了</div>
+              </div>
+              <div class="subject-card__analysis">
+                <div class="subject-card__strengths">
+                  <h4>強み</h4>
+                  <ul>
+                    {subject.strengths.map(strength => (
+                      <li>{strength}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="subject-card__weaknesses">
+                  <h4>課題</h4>
+                  <ul>
+                    {subject.weaknesses.map(weakness => (
+                      <li>{weakness}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              {subject.assignments.length > 0 && (
+                <div class="subject-card__assignments">
+                  <h4>課題の進捗状況</h4>
+                  {subject.assignments.map(assignment => (
+                    <div class="assignment-progress">
+                      <div class="assignment-progress__header">
+                        <div class="assignment-progress__title">{assignment.title}</div>
+                        <div class="assignment-progress__value">{assignment.progress}%</div>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-bar__fill" style={`width: ${assignment.progress}%`}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <a href={`/analytics/${subject.id}`} class="subject-card__link">詳細を見る</a>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  :root {
+    --color-blue: #4f46e5;
+    --color-green: #22c55e;
+    --color-yellow: #eab308;
+    --color-red: #ef4444;
+    --color-purple: #a855f7;
+    --color-teal: #14b8a6;
+  }
+  
+  .main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+  
+  .page-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .stats-overview,
+  .thought-patterns,
+  .activity-trends,
+  .subject-analysis {
+    margin-bottom: 3rem;
+  }
+  
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .stat-card {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid var(--border-color);
+  }
+  
+  .stat-card__title {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .stat-card__content {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .stat-card__value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  
+  .stat-card__metric {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+  
+  .stat-card__chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .circular-progress {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-primary) var(--progress), rgba(var(--accent-primary-rgb), 0.1) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .circular-progress__inner {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+  }
+  
+  /* Thought Patterns */
+  .thought-patterns__chart {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+  
+  .thought-pattern {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .thought-pattern:last-child {
+    margin-bottom: 0;
+  }
+  
+  .thought-pattern__label {
+    width: 140px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-right: 1rem;
+  }
+  
+  .thought-pattern__bar-container {
+    flex: 1;
+    height: 0.5rem;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-right: 1rem;
+  }
+  
+  .thought-pattern__bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 1rem;
+  }
+  
+  .thought-pattern__value {
+    width: 40px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+  
+  /* Activity Chart */
+  .activity-chart {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+  
+  .activity-chart__bars {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 200px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .activity-chart__bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc(100% / 7);
+  }
+  
+  .activity-chart__date {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  
+  .activity-chart__bar-container {
+    display: flex;
+    height: 180px;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  
+  .activity-chart__bar {
+    width: 24px;
+    border-radius: 4px 4px 0 0;
+  }
+  
+  .activity-chart__bar--time {
+    background-color: var(--accent-primary);
+  }
+  
+  .activity-chart__bar--questions {
+    background-color: var(--color-purple);
+  }
+  
+  .activity-chart__legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  .activity-chart__legend-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .activity-chart__legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 0.5rem;
+  }
+  
+  .activity-chart__legend-color--time {
+    background-color: var(--accent-primary);
+  }
+  
+  .activity-chart__legend-color--questions {
+    background-color: var(--color-purple);
+  }
+  
+  .activity-chart__legend-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  
+  /* Subject Analysis */
+  .subject-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .subject-card {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    border-top: 4px solid var(--subject-color);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    border: 1px solid var(--border-color);
+  }
+  
+  .subject-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .subject-card__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .subject-card__score {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--subject-color);
+  }
+  
+  .subject-card__score span {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+  
+  .subject-card__progress {
+    margin-bottom: 0.5rem;
+  }
+  
+  .progress-bar {
+    height: 0.5rem;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  
+  .progress-bar__fill {
+    height: 100%;
+    background-color: var(--subject-color);
+    border-radius: 1rem;
+  }
+  
+  .progress-bar__label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+  
+  .subject-card__analysis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .subject-card__strengths h4,
+  .subject-card__weaknesses h4,
+  .subject-card__assignments h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .subject-card__strengths ul,
+  .subject-card__weaknesses ul {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    padding-left: 1rem;
+  }
+  
+  .subject-card__assignments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .assignment-progress__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  
+  .assignment-progress__title {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+  }
+  
+  .assignment-progress__value {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  
+  .subject-card__link {
+    display: inline-block;
+    margin-top: auto;
+    text-align: center;
+    color: var(--subject-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+  }
+  
+  .subject-card__link:hover {
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 1.5rem;
+    }
+    
+    .stats-grid {
+      grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    }
+    
+    .activity-chart__bar {
+      width: 16px;
+    }
+    
+    .subject-card__analysis {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .main {
+      height: calc(100vh - 60px);
+    }
+    
+    .container {
+      padding: 1rem;
+    }
+    
+    .activity-chart__bars {
+      height: 150px;
+    }
+    
+    .activity-chart__bar-container {
+      height: 130px;
+    }
+    
+    .activity-chart__bar {
+      width: 12px;
+    }
+    
+    .subject-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style> 

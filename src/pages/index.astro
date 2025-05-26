@@ -1,11 +1,659 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// サンプルの授業データ
+const classes = [
+  { 
+    id: 'math', 
+    name: '数学', 
+    teacher: '山田先生',
+    color: 'blue',
+    activeAssignments: 2,
+    totalAssignments: 5
+  },
+  { 
+    id: 'science', 
+    name: '理科', 
+    teacher: '佐藤先生',
+    color: 'green',
+    activeAssignments: 1,
+    totalAssignments: 3
+  },
+  { 
+    id: 'english', 
+    name: '英語', 
+    teacher: '鈴木先生',
+    color: 'yellow',
+    activeAssignments: 0,
+    totalAssignments: 2
+  },
+  { 
+    id: 'social', 
+    name: '社会', 
+    teacher: '田中先生',
+    color: 'red',
+    activeAssignments: 1,
+    totalAssignments: 4
+  },
+];
+
+// 最近のアクティビティ
+const recentActivities = [
+  {
+    id: 1,
+    type: 'chat',
+    subject: '数学',
+    title: '二次方程式の解法',
+    time: '2025年5月26日 15:30'
+  },
+  {
+    id: 2,
+    type: 'summary',
+    subject: '英語',
+    title: '英語エッセイ作成のコツ',
+    time: '2025年5月25日 10:15'
+  },
+  {
+    id: 3,
+    type: 'assignment',
+    subject: '理科',
+    title: '元素周期表の基礎',
+    time: '2025年5月24日 14:45'
+  }
+];
+
+// 分析データ（簡易版）
+const analyticsData = {
+  overall: {
+    thoughtProcessScore: 75,
+    completedRate: 25,
+  },
+  subjectScores: [
+    { id: 'math', name: '数学', score: 80, color: 'blue' },
+    { id: 'science', name: '理科', score: 65, color: 'green' },
+    { id: 'english', name: '英語', score: 70, color: 'yellow' },
+    { id: 'social', name: '社会', score: 75, color: 'red' }
+  ],
+  topThoughtPatterns: [
+    { name: '分析的思考', value: 80 },
+    { name: '試行錯誤', value: 65 },
+    { name: '直感的理解', value: 50 }
+  ]
+};
 ---
 
 <Layout>
-	<Welcome />
+	<Sidebar />
+	<main class="main">
+		<div class="container">
+			<header class="page-header">
+				<h1 class="page-title">ダッシュボード</h1>
+				<p class="page-description">授業の課題や最近のアクティビティを確認できます。</p>
+			</header>
+
+			<section class="classes-section">
+				<div class="section-header">
+					<h2 class="section-title">授業一覧</h2>
+				</div>
+				<div class="classes-grid">
+					{classes.map(classItem => (
+						<a href={`/class/${classItem.id}`} class="class-card">
+							<div class="class-card__color-indicator" style={`background-color: var(--color-${classItem.color})`}></div>
+							<div class="class-card__content">
+								<div class="class-card__header">
+									<h3 class="class-card__title">{classItem.name}</h3>
+									<span class="class-card__teacher">{classItem.teacher}</span>
+								</div>
+								<div class="class-card__stats">
+									<div class="class-card__stat">
+										<span class="class-card__stat-value" style={`color: var(--color-${classItem.color})`}>{classItem.activeAssignments}</span>
+										<span class="class-card__stat-label">進行中の課題</span>
+									</div>
+									<div class="class-card__stat">
+										<span class="class-card__stat-value" style={`color: var(--color-${classItem.color})`}>{classItem.totalAssignments}</span>
+										<span class="class-card__stat-label">全ての課題</span>
+									</div>
+								</div>
+							</div>
+						</a>
+					))}
+				</div>
+			</section>
+			
+			<div class="dashboard-grid">
+				<section class="activities-section">
+					<div class="section-header">
+						<h2 class="section-title">最近のアクティビティ</h2>
+						<button class="btn-text">全て表示</button>
+					</div>
+					<div class="activities-list">
+						{recentActivities.map(activity => (
+							<div class="activity-item">
+								<div class="activity-item__icon" data-type={activity.type}>
+									{activity.type === 'chat' && (
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+										</svg>
+									)}
+									{activity.type === 'summary' && (
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+											<polyline points="14 2 14 8 20 8"></polyline>
+											<line x1="16" y1="13" x2="8" y2="13"></line>
+											<line x1="16" y1="17" x2="8" y2="17"></line>
+											<polyline points="10 9 9 9 8 9"></polyline>
+										</svg>
+									)}
+									{activity.type === 'assignment' && (
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+											<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+										</svg>
+									)}
+								</div>
+								<div class="activity-item__content">
+									<div class="activity-item__subject">{activity.subject}</div>
+									<h3 class="activity-item__title">{activity.title}</h3>
+									<p class="activity-item__description">
+										{activity.type === 'chat' && 'デジタルお兄ちゃんと会話しました'}
+										{activity.type === 'summary' && 'サマリーを作成しました'}
+										{activity.type === 'assignment' && '課題に取り組みました'}
+									</p>
+								</div>
+								<div class="activity-item__time">{activity.time}</div>
+							</div>
+						))}
+					</div>
+				</section>
+				
+				<section class="analytics-section">
+					<div class="section-header">
+						<h2 class="section-title">学習分析</h2>
+						<a href="/analytics" class="btn-text">詳細を見る</a>
+					</div>
+					
+					<div class="analytics-overview">
+						<div class="analytics-card analytics-card--main">
+							<div class="analytics-card__header">
+								<h3 class="analytics-card__title">総合思考力スコア</h3>
+							</div>
+							<div class="analytics-card__content">
+								<div class="circular-progress" style={`--progress: ${analyticsData.overall.thoughtProcessScore}%`}>
+									<div class="circular-progress__inner">
+										<span class="circular-progress__value">{analyticsData.overall.thoughtProcessScore}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="analytics-card analytics-card--subjects">
+							<div class="analytics-card__header">
+								<h3 class="analytics-card__title">授業別スコア</h3>
+							</div>
+							<div class="analytics-card__content">
+								<div class="subject-scores">
+									{analyticsData.subjectScores.map(subject => (
+										<div class="subject-score">
+											<div class="subject-score__info">
+												<div class="subject-score__color" style={`background-color: var(--color-${subject.color})`}></div>
+												<div class="subject-score__name">{subject.name}</div>
+											</div>
+											<div class="subject-score__bar-container">
+												<div class="subject-score__bar" style={`width: ${subject.score}%; background-color: var(--color-${subject.color})`}></div>
+											</div>
+											<div class="subject-score__value">{subject.score}</div>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+						
+						<div class="analytics-card analytics-card--patterns">
+							<div class="analytics-card__header">
+								<h3 class="analytics-card__title">主な思考パターン</h3>
+							</div>
+							<div class="analytics-card__content">
+								<div class="thought-patterns">
+									{analyticsData.topThoughtPatterns.map(pattern => (
+										<div class="thought-pattern">
+											<div class="thought-pattern__label">{pattern.name}</div>
+											<div class="thought-pattern__value">{pattern.value}%</div>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+	</main>
 </Layout>
+
+<style>
+	:root {
+		--color-blue: #4f46e5;
+		--color-green: #22c55e;
+		--color-yellow: #eab308;
+		--color-red: #ef4444;
+	}
+	
+	.main {
+		flex: 1;
+		height: 100vh;
+		overflow-y: auto;
+	}
+	
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+	
+	.page-header {
+		margin-bottom: 2.5rem;
+	}
+	
+	.page-title {
+		font-size: 1.75rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+		color: var(--text-primary);
+	}
+	
+	.page-description {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+	}
+	
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.25rem;
+	}
+	
+	.section-title {
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+	
+	.classes-section {
+		margin-bottom: 3rem;
+	}
+	
+	.dashboard-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+	}
+	
+	.classes-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1.5rem;
+	}
+	
+	.class-card {
+		background-color: var(--bg-secondary);
+		border-radius: 0.75rem;
+		overflow: hidden;
+		text-decoration: none;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		display: flex;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+	
+	.class-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	}
+	
+	.class-card__color-indicator {
+		width: 8px;
+		height: auto;
+		flex-shrink: 0;
+	}
+	
+	.class-card__content {
+		flex: 1;
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.class-card__header {
+		margin-bottom: 1.25rem;
+	}
+	
+	.class-card__title {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin-bottom: 0.25rem;
+		color: var(--text-primary);
+	}
+	
+	.class-card__teacher {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+	}
+	
+	.class-card__stats {
+		display: flex;
+		gap: 1.5rem;
+	}
+	
+	.class-card__stat {
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.class-card__stat-value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1;
+		margin-bottom: 0.25rem;
+	}
+	
+	.class-card__stat-label {
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+	}
+	
+	.activities-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	
+	.activity-item {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 1rem;
+		padding: 1rem;
+		border-radius: 0.75rem;
+		background-color: var(--bg-secondary);
+		border: 1px solid var(--border-color);
+		align-items: center;
+	}
+	
+	.activity-item__icon {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		color: white;
+	}
+	
+	.activity-item__icon[data-type="chat"] {
+		background-color: var(--color-blue);
+	}
+	
+	.activity-item__icon[data-type="summary"] {
+		background-color: var(--color-green);
+	}
+	
+	.activity-item__icon[data-type="assignment"] {
+		background-color: var(--color-yellow);
+	}
+	
+	.activity-item__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	
+	.activity-item__subject {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+	}
+	
+	.activity-item__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+	
+	.activity-item__description {
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+	}
+	
+	.activity-item__time {
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		white-space: nowrap;
+	}
+	
+	.btn-text {
+		background: none;
+		border: none;
+		color: var(--accent-primary);
+		font-size: 0.875rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: opacity 0.2s ease;
+		text-decoration: none;
+	}
+	
+	.btn-text:hover {
+		opacity: 0.8;
+	}
+	
+	/* Analytics Section */
+	.analytics-section {
+		position: relative;
+	}
+	
+	.analytics-overview {
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto auto;
+		gap: 1rem;
+		height: 100%;
+	}
+	
+	.analytics-card {
+		background-color: var(--bg-secondary);
+		border-radius: 0.75rem;
+		border: 1px solid var(--border-color);
+		overflow: hidden;
+	}
+	
+	.analytics-card__header {
+		padding: 1rem;
+		border-bottom: 1px solid var(--border-color);
+	}
+	
+	.analytics-card__title {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+	
+	.analytics-card__content {
+		padding: 1.25rem;
+	}
+	
+	.analytics-card--main .analytics-card__content {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 1.5rem;
+	}
+	
+	.circular-progress {
+		width: 120px;
+		height: 120px;
+		border-radius: 50%;
+		background: conic-gradient(var(--accent-primary) var(--progress), rgba(var(--accent-primary-rgb), 0.1) 0);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.circular-progress__inner {
+		width: 90px;
+		height: 90px;
+		border-radius: 50%;
+		background-color: var(--bg-secondary);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.circular-progress__value {
+		font-size: 2rem;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+	
+	.subject-scores {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	
+	.subject-score {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	
+	.subject-score__info {
+		display: flex;
+		align-items: center;
+		width: 80px;
+	}
+	
+	.subject-score__color {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		margin-right: 0.5rem;
+	}
+	
+	.subject-score__name {
+		font-size: 0.875rem;
+		color: var(--text-primary);
+	}
+	
+	.subject-score__bar-container {
+		flex: 1;
+		height: 6px;
+		background-color: rgba(var(--accent-primary-rgb), 0.1);
+		border-radius: 3px;
+		overflow: hidden;
+	}
+	
+	.subject-score__bar {
+		height: 100%;
+		border-radius: 3px;
+	}
+	
+	.subject-score__value {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--text-primary);
+		width: 30px;
+		text-align: right;
+	}
+	
+	.thought-patterns {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	
+	.thought-pattern {
+		display: flex;
+		justify-content: space-between;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--border-color);
+	}
+	
+	.thought-pattern:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+	
+	.thought-pattern__label {
+		font-size: 0.875rem;
+		color: var(--text-primary);
+	}
+	
+	.thought-pattern__value {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--accent-primary);
+	}
+	
+	@media (max-width: 1024px) {
+		.dashboard-grid {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+		}
+		
+		.analytics-overview {
+			grid-template-columns: 1fr 1fr;
+			grid-template-areas: 
+				"main main"
+				"subjects patterns";
+		}
+		
+		.analytics-card--main {
+			grid-area: main;
+		}
+		
+		.analytics-card--subjects {
+			grid-area: subjects;
+		}
+		
+		.analytics-card--patterns {
+			grid-area: patterns;
+		}
+	}
+	
+	@media (max-width: 768px) {
+		.container {
+			padding: 1.5rem;
+		}
+		
+		.activity-item {
+			grid-template-columns: auto 1fr;
+		}
+		
+		.activity-item__time {
+			grid-column: 2;
+			justify-self: start;
+		}
+		
+		.analytics-overview {
+			grid-template-columns: 1fr;
+			grid-template-areas: 
+				"main"
+				"subjects"
+				"patterns";
+		}
+	}
+	
+	@media (max-width: 640px) {
+		.main {
+			height: calc(100vh - 60px);
+		}
+		
+		.container {
+			padding: 1rem;
+		}
+		
+		.classes-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

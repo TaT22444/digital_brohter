@@ -1,0 +1,10 @@
+---
+// この複雑なルートは使用せず、メインの課題ページにリダイレクト
+const { id, assignmentId } = Astro.params;
+
+// 課題IDを再形成（例：math-1）
+const formattedId = `${id}-${assignmentId}`;
+
+// メインの課題ページにリダイレクト
+return Astro.redirect(`/assignment/${formattedId}`);
+--- 
