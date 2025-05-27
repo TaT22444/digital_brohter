@@ -6,6 +6,18 @@ const classes = [
   { id: 'english', name: '英語', icon: 'book' },
   { id: 'social', name: '社会', icon: 'globe' },
 ];
+
+// 現在のパスを取得
+const currentPath = Astro.url.pathname;
+
+// ルートパスをスラッシュのみに正規化
+const normalizedPath = currentPath.endsWith('/') && currentPath.length > 1 
+  ? currentPath.slice(0, -1) 
+  : currentPath;
+
+// デバッグ情報
+console.log('Current Path:', currentPath);
+console.log('Normalized Path:', normalizedPath);
 ---
 
 <aside class="sidebar">
@@ -20,7 +32,7 @@ const classes = [
       <h3 class="sidebar__section-title">メニュー</h3>
       <ul class="sidebar__nav-list">
         <li class="sidebar__nav-item">
-          <a class="sidebar__nav-link" href="/">
+          <a class={`sidebar__nav-link ${normalizedPath === '/' ? 'active' : ''}`} href="/">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -29,7 +41,7 @@ const classes = [
           </a>
         </li>
         <li class="sidebar__nav-item">
-          <a class="sidebar__nav-link" href="/analytics">
+          <a class={`sidebar__nav-link ${normalizedPath === '/analytics' ? 'active' : ''}`} href="/analytics">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -39,7 +51,7 @@ const classes = [
           </a>
         </li>
         <li class="sidebar__nav-item">
-          <a class="sidebar__nav-link" href="/summary">
+          <a class={`sidebar__nav-link ${normalizedPath === '/summary' ? 'active' : ''}`} href="/summary">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
@@ -56,27 +68,31 @@ const classes = [
     <div class="sidebar__section">
       <h3 class="sidebar__section-title">授業</h3>
       <ul class="sidebar__nav-list">
-        {classes.map(classItem => (
-          <li class="sidebar__nav-item">
-            <a class="sidebar__nav-link" href={`/class/${classItem.id}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                {classItem.icon === 'calculator' && (
-                  <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="15" x2="16" y2="15"></line></>
-                )}
-                {classItem.icon === 'flask' && (
-                  <><path d="M9 3l6 6v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9l6-6"></path><path d="M8 3h8"></path><path d="M11 13h2"></path></>
-                )}
-                {classItem.icon === 'book' && (
-                  <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></>
-                )}
-                {classItem.icon === 'globe' && (
-                  <><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></>
-                )}
-              </svg>
-              <span>{classItem.name}</span>
-            </a>
-          </li>
-        ))}
+        {classes.map(classItem => {
+          const classPath = `/class/${classItem.id}`;
+          const isActive = normalizedPath === classPath || normalizedPath.startsWith(`${classPath}/`);
+          return (
+            <li class="sidebar__nav-item">
+              <a class={`sidebar__nav-link ${isActive ? 'active' : ''}`} href={classPath}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  {classItem.icon === 'calculator' && (
+                    <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="15" x2="16" y2="15"></line></>
+                  )}
+                  {classItem.icon === 'flask' && (
+                    <><path d="M9 3l6 6v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9l6-6"></path><path d="M8 3h8"></path><path d="M11 13h2"></path></>
+                  )}
+                  {classItem.icon === 'book' && (
+                    <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></>
+                  )}
+                  {classItem.icon === 'globe' && (
+                    <><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></>
+                  )}
+                </svg>
+                <span>{classItem.name}</span>
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </div>
   </nav>
@@ -171,6 +187,13 @@ const classes = [
   .sidebar__nav-link:hover {
     background-color: rgba(var(--accent-primary-rgb), 0.1);
     color: var(--accent-primary);
+  }
+  
+  /* アクティブなナビゲーションリンクのスタイル */
+  .sidebar__nav-link.active {
+    background-color: rgba(var(--accent-primary-rgb), 0.15);
+    color: var(--accent-primary);
+    font-weight: 500;
   }
   
   .sidebar__nav-link svg {

@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@astrojs/netlify": "^6.3.4",
-    "astro": "^5.8.0"
+    "@types/dompurify": "^3.0.5",
+    "astro": "^5.8.0",
+    "dompurify": "^3.2.6",
+    "marked": "^15.0.12"
   }
 }

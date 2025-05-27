@@ -1,5 +1,16 @@
 ---
+// @ts-nocheck
 // ChatInterface.astroコンポーネントのprops定義
+import { marked } from 'marked';
+
+// markedの設定
+marked.setOptions({
+  breaks: true,        // 改行をbrタグに変換
+  gfm: true,           // GitHub Flavored Markdown対応
+  headerIds: false,    // ヘッダーにIDを追加しない
+  mangle: false        // エスケープ処理を無効化
+});
+
 export interface Props {
   initialMessages?: any[];
   subject: string;
@@ -7,6 +18,13 @@ export interface Props {
 }
 
 const { initialMessages = [], subject, topic } = Astro.props;
+
+// マークダウン処理（サーバーサイド用）
+const processMarkdown = (text) => {
+  if (!text) return '';
+  // マークダウンをHTMLに変換
+  return marked.parse(text);
+};
 ---
 
 <div class="chat-container">
@@ -33,88 +51,8 @@ const { initialMessages = [], subject, topic } = Astro.props;
   
   <div class="chat-messages" id="chat-messages">
     {initialMessages.map((message) => {
-      // サーバーサイドでの安全なHTMLエスケープ（documentを使わない方法）
-      const escapeHTML = (str) => {
-        return str
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      };
-      
-      // エスケープしたコンテンツに対してマークダウン処理
-      let safeContent = escapeHTML(message.content);
-      
-      // 段落を先に処理
-      safeContent = safeContent.replace(/\n\n+/g, '</p><p>');
-      
-      // リスト処理
-      const listItemRegex = /^(\d+)\.\s(.*)$|^-\s(.*)$/gm;
-      let inOrderedList = false;
-      let inUnorderedList = false;
-      let formattedList = '';
-      const lines = safeContent.split('\n');
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const orderedMatch = /^(\d+)\.\s(.*)$/.exec(line);
-        const unorderedMatch = /^-\s(.*)$/.exec(line);
-        
-        if (orderedMatch) {
-          if (!inOrderedList) {
-            // 新しい番号付きリスト開始
-            if (inUnorderedList) {
-              formattedList += '</ul>';
-              inUnorderedList = false;
-            }
-            formattedList += `<ol start="${orderedMatch[1]}">`;
-            inOrderedList = true;
-          }
-          formattedList += `<li>${orderedMatch[2]}</li>`;
-        } else if (unorderedMatch) {
-          if (!inUnorderedList) {
-            // 新しい箇条書きリスト開始
-            if (inOrderedList) {
-              formattedList += '</ol>';
-              inOrderedList = false;
-            }
-            formattedList += '<ul>';
-            inUnorderedList = true;
-          }
-          formattedList += `<li>${unorderedMatch[1]}</li>`;
-        } else {
-          // リストではない行
-          if (inOrderedList) {
-            formattedList += '</ol>';
-            inOrderedList = false;
-          }
-          if (inUnorderedList) {
-            formattedList += '</ul>';
-            inUnorderedList = false;
-          }
-          
-          // 改行を<br>に置換
-          if (i > 0 && !lines[i-1].match(listItemRegex)) {
-            formattedList += line ? `<br>${line}` : '';
-          } else {
-            formattedList += line;
-          }
-        }
-        
-        // 最終行の処理
-        if (i === lines.length - 1) {
-          if (inOrderedList) formattedList += '</ol>';
-          if (inUnorderedList) formattedList += '</ul>';
-        }
-      }
-      
-      // 基本的な書式
-      const styledContent = formattedList
-        // マークダウン書式
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 太字
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')             // 斜体
-        .replace(/`(.*?)`/g, '<code>$1</code>');          // コード
+      // マークダウン処理
+      const htmlContent = processMarkdown(message.content);
       
       return (
         <div class={`message message-${message.sender}`}>
@@ -123,9 +61,7 @@ const { initialMessages = [], subject, topic } = Astro.props;
               <span>兄</span>
             </div>
           )}
-          <div class="message-content">
-            <Fragment set:html={`<p>${styledContent}</p>`} />
-          </div>
+          <div class="message-content" set:html={htmlContent}></div>
         </div>
       );
     })}
@@ -159,6 +95,7 @@ const { initialMessages = [], subject, topic } = Astro.props;
   </div>
 </div>
 
+<script define:vars={{ subject, topic }} src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script define:vars={{ subject, topic }}>
   // DOM要素の取得
   const chatForm = document.getElementById('chat-form');
@@ -167,6 +104,14 @@ const { initialMessages = [], subject, topic } = Astro.props;
   const sendButton = document.getElementById('send-button');
   const chatStatus = document.getElementById('chat-status');
   const clearChatButton = document.getElementById('clear-chat');
+  
+  // marked.jsの設定
+  marked.setOptions({
+    breaks: true,        // 改行をbrタグに変換
+    gfm: true,           // GitHub Flavored Markdown対応
+    headerIds: false,    // ヘッダーにIDを追加しない
+    mangle: false        // エスケープ処理を無効化
+  });
   
   // チャット履歴
   let messageHistory = [];
@@ -307,92 +252,19 @@ const { initialMessages = [], subject, topic } = Astro.props;
       `;
     }
     
-    // HTMLエスケープ関数
-    const escapeHTML = (str) => {
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    // マークダウン処理
+    const processMarkdown = (text) => {
+      if (!text) return '';
+      // マークダウンをHTMLに変換
+      return marked.parse(text);
     };
     
-    // エスケープしてからマークダウン処理
-    let safeContent = escapeHTML(content);
-    
-    // 段落を先に処理
-    safeContent = safeContent.replace(/\n\n+/g, '</p><p>');
-    
-    // リスト処理
-    const listItemRegex = /^(\d+)\.\s(.*)$|^-\s(.*)$/gm;
-    let inOrderedList = false;
-    let inUnorderedList = false;
-    let formattedList = '';
-    const lines = safeContent.split('\n');
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const orderedMatch = /^(\d+)\.\s(.*)$/.exec(line);
-      const unorderedMatch = /^-\s(.*)$/.exec(line);
-      
-      if (orderedMatch) {
-        if (!inOrderedList) {
-          // 新しい番号付きリスト開始
-          if (inUnorderedList) {
-            formattedList += '</ul>';
-            inUnorderedList = false;
-          }
-          formattedList += `<ol start="${orderedMatch[1]}">`;
-          inOrderedList = true;
-        }
-        formattedList += `<li>${orderedMatch[2]}</li>`;
-      } else if (unorderedMatch) {
-        if (!inUnorderedList) {
-          // 新しい箇条書きリスト開始
-          if (inOrderedList) {
-            formattedList += '</ol>';
-            inOrderedList = false;
-          }
-          formattedList += '<ul>';
-          inUnorderedList = true;
-        }
-        formattedList += `<li>${unorderedMatch[1]}</li>`;
-      } else {
-        // リストではない行
-        if (inOrderedList) {
-          formattedList += '</ol>';
-          inOrderedList = false;
-        }
-        if (inUnorderedList) {
-          formattedList += '</ul>';
-          inUnorderedList = false;
-        }
-        
-        // 改行を<br>に置換
-        if (i > 0 && !lines[i-1].match(listItemRegex)) {
-          formattedList += line ? `<br>${line}` : '';
-        } else {
-          formattedList += line;
-        }
-      }
-      
-      // 最終行の処理
-      if (i === lines.length - 1) {
-        if (inOrderedList) formattedList += '</ol>';
-        if (inUnorderedList) formattedList += '</ul>';
-      }
-    }
-    
-    // 基本的な書式
-    const styledContent = formattedList
-      // マークダウン書式
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 太字
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')             // 斜体
-      .replace(/`(.*?)`/g, '<code>$1</code>');          // コード
+    // コンテンツをHTML化
+    const htmlContent = processMarkdown(content);
     
     messageHTML += `
       <div class="message-content">
-        <p>${styledContent}</p>
+        ${htmlContent}
       </div>
     `;
     

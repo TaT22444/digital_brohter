@@ -1,3 +1,13 @@
+---
+// 現在のパスを取得
+const currentPath = Astro.url.pathname;
+
+// ルートパスをスラッシュのみに正規化
+const normalizedPath = currentPath.endsWith('/') && currentPath.length > 1 
+  ? currentPath.slice(0, -1) 
+  : currentPath;
+---
+
 <header class="header">
   <div class="header__inner">
     <a class="header__logo" href="/">
@@ -6,18 +16,18 @@
     <nav class="header__nav">
       <ul class="header__nav-list">
         <li class="header__nav-item">
-          <a class="header__nav-link" href="/">
+          <a class={`header__nav-link ${normalizedPath === '/' ? 'active' : ''}`} href="/">
             相談する
           </a>
         </li>
         <li class="header__nav-item">
-          <a class="header__nav-link" href="/summary">
+          <a class={`header__nav-link ${normalizedPath === '/summary' ? 'active' : ''}`} href="/summary">
             サマリー
           </a>
         </li>
       </ul>
     </nav>
-    <a class="header__profile" href="/profile">
+    <a class={`header__profile ${normalizedPath === '/profile' ? 'active' : ''}`} href="/profile">
       <div class="header__profile-image">
         <span>U</span>
       </div>
@@ -68,8 +78,30 @@
     color: var(--accent-primary);
   }
 
+  /* アクティブなリンクのスタイル */
+  .header__nav-link.active {
+    color: var(--accent-primary);
+    font-weight: 600;
+    position: relative;
+  }
+
+  .header__nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 1px;
+  }
+
   .header__profile {
     text-decoration: none;
+  }
+
+  .header__profile.active .header__profile-image {
+    box-shadow: 0 0 0 2px var(--accent-primary);
   }
 
   .header__profile-image {

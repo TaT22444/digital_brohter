@@ -1,4 +1,5 @@
 import { sendChatMessage, createEducationalSystemPrompt } from '../../lib/openai.js';
+import { getAssignmentById } from '../../lib/assignmentData.js';
 
 export async function POST({ request }) {
   try {
@@ -12,8 +13,18 @@ export async function POST({ request }) {
       });
     }
     
+    // 課題の詳細情報を取得
+    const assignmentDetails = getAssignmentById(topic);
+    const assignmentTitle = assignmentDetails?.title || topic;
+    const assignmentDescription = assignmentDetails?.description || '';
+    
     // システムプロンプトを追加
-    const systemPrompt = createEducationalSystemPrompt(subject || '学校の勉強', topic || '一般');
+    const systemPrompt = createEducationalSystemPrompt(
+      subject || '学校の勉強', 
+      assignmentTitle,
+      assignmentDescription
+    );
+    
     const allMessages = [systemPrompt, ...messages];
     
     // OpenAI APIにリクエスト
